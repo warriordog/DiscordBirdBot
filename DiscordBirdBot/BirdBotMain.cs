@@ -11,13 +11,15 @@ namespace DiscordBirdBot
 {
     public class BirdBotMain
     {
-        private readonly DiscordClient             _discord;
+        private readonly DiscordClient        _discord;
         private readonly ILogger<BirdBotMain> _logger;
-        private readonly Random                    _random;
+        private readonly Random               _random;
+        private readonly BotOptions           _options;
 
         public BirdBotMain(ILoggerFactory loggerFactory, IOptions<BotOptions> botOptions, ILogger<BirdBotMain> logger)
         {
             _logger = logger;
+            _options = botOptions.Value;
 
             _random = new Random();
 
@@ -25,9 +27,10 @@ namespace DiscordBirdBot
             _discord = new DiscordClient(
                 new DiscordConfiguration
                 {
-                    Token = botOptions.Value.DiscordToken,
+                    Token = _options.DiscordToken,
                     TokenType = TokenType.Bot,
-                    LoggerFactory = loggerFactory
+                    LoggerFactory = loggerFactory,
+                    Intents = DiscordIntents.DirectMessages | DiscordIntents.GuildMessages
                 }
             );
 
@@ -62,7 +65,7 @@ namespace DiscordBirdBot
                 if (e.Message.Content.ToLower().Contains("bird!"))
                 {
                     // Get random url
-                    var picUrl = GetRandomPicture();
+                    var picUrl = GetRandomImageUrl();
                     
                     // Send response
                     await e.Message.RespondAsync(
@@ -78,10 +81,10 @@ namespace DiscordBirdBot
             }
         }
 
-        private string GetRandomPicture()
+        private string GetRandomImageUrl()
         {
-            var answerIdx = _random.Next(BirdBotUrls.Length);
-            return BirdBotUrls[answerIdx];
+            var imageIdx = _random.Next(_options.ImageUrls.Count);
+            return _options.ImageUrls[imageIdx];
         }
         
         public async Task StartAsync()
@@ -90,14 +93,10 @@ namespace DiscordBirdBot
             await _discord.ConnectAsync();
         }
 
-        public Task StopAsync()
+        public async Task StopAsync()
         {
             _logger.LogInformation("BirdBot stopping");
-            return _discord.DisconnectAsync();
+            await _discord.DisconnectAsync();
         }
-
-        private static readonly string[] BirdBotUrls = {
-            
-        };
     }
 }
