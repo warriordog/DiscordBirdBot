@@ -38,7 +38,7 @@ namespace DiscordBirdBot
             _discord.MessageCreated += HandleMessage;
             
             // Log when bot joins a server.
-            _discord.GuildCreated += (d, e) =>
+            _discord.GuildCreated += (_, e) =>
             {
                 _logger.LogInformation($"Joined server {e.Guild.Id} ({e.Guild.Name})");
                 return Task.CompletedTask;
